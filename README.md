@@ -1,238 +1,47 @@
-# Gaia
-
-Gaia is Mozilla's Phone UX for the Boot to Gecko (B2G) project.
-
-Boot to Gecko aims to create a complete, standalone operating system for the open web.
-
-You can read more about B2G here:
-
-> [http://mozilla.org/b2g](http://mozilla.org/b2g)
-
-follow us on twitter: @Boot2Gecko
-
-> [http://twitter.com/Boot2Gecko](http://twitter.com/Boot2Gecko)
-
-join the Gaia mailing list:
-
-> [http://groups.google.com/group/mozilla.dev.gaia](http://groups.google.com/group/mozilla.dev.gaia)
-
-and talk to us on IRC:
-
->  #gaia on irc.mozilla.org
-
-## Hacking Gaia
-
-[The Gaia/Hacking page on MDN](https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Platform/Gaia/Hacking) has all the information that you need to start working on Gaia, including building and running Gaia on a compatible device or desktop computer.
-
-## Autolander (bot)
-
-Autolander is a bot which integrations github and bugzilla workflows. Opt-into new features by adding +autolander to your pull request title.
-
-Features available:
-  - Automatic pull request to bugzilla attachment linking.
-  - Automatic landing, on green integration run, with a R+ from a suggested reviewer and checkin-needed keyword.
-  - Comments in the bug with the landed commit, and marks the bug as fixed.
-  - Validates pull request title and commit message formats.
-  - Currently only runs a subset of the gaia CI tests which are stable on taskcluster. Ensure you have a green gaia-try run before adding checkin-needed.
-  - See more at: https://github.com/kevingrandon/autolander
-
-
-## Tests
-
-### Unit Tests
-
-Unit tests for an app go in `apps/<APP>/test/unit/`.
-
-To run all the unit tests with B2G Desktop:
-
-1. Run `DEBUG=1 make`
-2. Run `make test-agent-server &`
-3. Run B2G Desktop and open the Test Agent app
-4. Run `make test-agent-test`
-
-   or `make test-agent-test APP=<APP>` to run unit tests for a
-   specific app
-
-More importantly, you can use test-agent-server to watch the files
-on the filesystem and execute relevant tests when they change:
-
-1. Run `DEBUG=1 make`
-2. Run `make test-agent-server &`
-3. Run B2G Desktop and open the Test Agent app
-4. Edit files and when you save them, glance at the console with
-   test-agent-server running
-
-Note: If you add new files, you will need to restart test-agent-server.
-
-As a convenience, you can also use the `gaia-test` script to launch the
-test-agent-server and open the Test Agent app in firefox:
-
-1. Add firefox to your `$PATH` or set `$FIREFOX` to your preferred
-   firefox/aurora/nightly binary.
-2. Run `./bin/gaia-test` to run the test-agent-server and launch firefox.
-3. Run `make test-agent-test` or modify files as described above.
-
-For more details on writing tests, see:
-https://developer.mozilla.org/en/Mozilla/Boot_to_Gecko/Gaia_Unit_Tests
-
-### Integration Tests
-
-Gaia uses
-[marionette-js-runner](https://github.com/mozilla-b2g/marionette-js-runner)
-to run the tests with a custom builder for gaia. Tests should live with the rest of your apps code (in apps/my_app/test/marionette) and
-test files should end in _test.js.
-
-All integration tests run under a node environment. You need node >= 0.10
-for this to work predictably.
-
-Shared code for tests lives under shared/test/integration.
-
-#### Running integration tests
-
-NOTE: unless your tests end in _test.js they will not be
-automatically picked up by `make test-integration`.
-
-```sh
-make test-integration
-```
-
-#### Invoking a test file
-
-```sh
-make test-integration TEST_FILES=<test>
-```
-
-For example, we could run the `day_view_test.js` test in calendar app with the below command.
-```
-make test-integration TEST_FILES=apps/calendar/test/marionette/day_view_test.js
-```
-
-If you would like to run more than one test, we could do the below command.
-```
-make test-integration TEST_FILES="apps/calendar/test/marionette/day_view_test.js apps/calendar/test/marionette/today_test.js"
-```
-
-#### Invoking tests for a specific app
-
-```sh
-make test-integration APP=<APP>
-```
-
-For example, we could run all tests for the calendar app with `make test-integration APP=calendar`.
-
-#### Skipping a test file
-```sh
-make test-integration SKIP_TEST_FILES=<test>
-```
-For example, we could skip the `day_view_test.js` test in calendar app with the below command.
-```
-make test-integration SKIP_TEST_FILES=apps/calendar/test/marionette/day_view_test.js
-```
-
-If you would like to skip more than one test, we could do the below command.
-```
-make test-integration SKIP_TEST_FILES="apps/calendar/test/marionette/day_view_test.js apps/calendar/test/marionette/today_test.js"
-```
-
-Notice that we could not use the `TEST_FILES` and `SKIP_TEST_FILES` parameters at the same time.
-
-#### Running tests while working
-
-If you wish to run many tests in background you might not want to be disturbed
-by the b2g-desktop window popping everytime, or the sound. One solution for
-the first issue is to use Xvfb:
-
-```sh
-xvfb-run make test-integration
-```
-
-If you are using PulseAudio and want to keep the tests quied, then just force
-an invalid server:
-
-```sh
-PULSE_SERVER=":" make test-integration
-```
-
-You can of course combine both:
-
-```sh
-PULSE_SERVER=":" xvfb-run make test-integration
-```
-
-#### Running tests without building profile
-
-if you would like to run tests without building profile, use `make test-integration-test`:
-```sh
-PROFILE_FOLDER=profile-test make # generate profile directory in first time
-make test-integration-test
-```
-
-#### Debugging Tests
-
-To view log out from a test
-
-```sh
-make test-integration VERBOSE=1
-```
-
-#### Running tests in OOP mode
-
-To run tests in OOP mode
-
-```sh
-make test-integration OOP=1
-```
-
-#### Where to find documentation
-  - [Node.js](http://nodejs.org)
-  - [MDN: for high level overview](https://developer.mozilla.org/en-US/docs/Marionette/Marionette_JavaScript_Tools)
-  - [mocha: which is wrapped by marionette-js-runner](http://visionmedia.github.io/mocha/)
-  - [marionette-js-runner: for the test framework](https://github.com/mozilla-b2g/marionette-js-runner)
-  - [marionette-client: for anything to do with client.X](http://lightsofapollo.github.io/marionette_js_client/api-docs/classes/Marionette.Client.html)
-
-#### Gotchas
-
-- For performance reasons we don't run `make profile` for each test
-  run this means you need to manually remove the `profile-test`
-  folder when you make changes to your apps.
-
-- If you don't have a b2g folder one will be downloaded for you.
-  This can be problematic if you're offline. You can symlink a
-  b2g-desktop directory to b2g/ in gaia to avoid the download.
-
-- If you have some weird node errors, try removing node_modules since
-  things may be stale.
-
-- To get debug information from the b2g desktop client, run this:
-`DEBUG=b2g-desktop TEST_FILES=name/of/test.js ./bin/gaia-marionette`
-
-- To get debug information from b2g desktop and all of the marionette
-plugins, run this:
-`DEBUG=* TEST_FILES=name/of/test.js ./bin/gaia-marionette`
-
-### UI Tests
-
-#### Functional
-
-See [Gaia functional tests README](https://github.com/mozilla-b2g/gaia/blob/master/tests/python/gaia-ui-tests/README.md)
-
-#### Endurance
-
-See [how to run the Gaia endurance tests](https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Platform/Automated_testing/endurance_tests/how_to_run_gaiaui_endurance_tests)
-
-## Generate jsdoc
-
-To generate API reference locally, you have to install grunt with following command:
-
-```sh
-$ npm -g grunt-cli
-```
-
-then run `make docs` command to generate docs.
-The generated API docs will be located in `docs` folder.
-
-You could generate single app doc with this:
-
-```sh
-$ grunt jsdoc:system
-```
+# Simple B2G Shell without Too Much Historical Burden
+
+Yes, Gaia is unavoidable becoming too complex for an unseen developer who
+understands no mysterious UX and only want a simple shell. Although this is
+actually a good thing because we have made so much mistakes and tried lots of
+paths lead to nothing. All of these can be the solid ground for a better future.
+
+Nevertheless, it still has too much compromises and dirty workarounds left
+by people care no architecture issues but only want to finish the work. We've
+been tortured by these sad code everyday and do lots of refactoring to try
+to make things become better. It sometime works well, but unfortunately the
+other parts of our components are still growing with the monstrous styles
+and the continuing careless patches. Think about what if we can get rid of
+these messes and start to develop again, and this time even it may never
+be a product with commercial success, but we can finally create and hold
+our peaceful land to see how powerful or awful our underlying platform is,
+in a different but healthy way.
+
+So, this project would never replace Gaia and it's a very personal project,
+with the following very personal principles of developments:
+
+1. If our architecture can't afford UX features, don't do that until we can
+fix and extend the architecture. In Gaia there are too much ridiculous code
+exist only because people can't, or even worse, don't like to find a good
+and unified way to implement the feature, within a theoretical powerful enough
+architecture.
+
+2. Rewriting all things should not be blamed, especially when this is for an
+architecture change. Every time we hit the wall we may discover the limits of
+our architecture. Sometimes we can still extend it to fit the needs, but if
+situation is bad we should be allowed to get rid of whole things and start
+again, with a much better plan.
+
+3. If platform sucks, do no workarounds for features. Some APIs just not mature
+enough to support features, and thus the shell should stop to support the
+relevant features until platform is ready. For example, if orientation API is
+so problematic when app is in background, kill untrusted background apps to
+avoid the issue. To be radical hurts nothing in this pure personal project.
+
+4. Supports nothing if we can't make sure there is no intermittent errors during
+test. If our code leads to intermittent failures the feature should be suspended,
+until we can find the root cause and make sure each small step is robust enough.
+
+The current goal is to avoid modify Gaia code but create a new, launch-able System
+app 'Core'. In the Core environment we can test all new things without be bothered
+by other legacy components and build scripts. We would not remove Gaia in the code
+base unless we can make sure the architecture is robust enough.
