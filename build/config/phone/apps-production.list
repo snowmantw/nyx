@@ -28,6 +28,7 @@ apps/setringtone
 apps/settings
 apps/sms
 apps/system
+apps/core
 apps/verticalhome
 apps/video
 apps/wallpaper
