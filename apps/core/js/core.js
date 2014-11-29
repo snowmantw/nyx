@@ -12,14 +12,20 @@
  * center of messaging passing and mediator of the whole system.
  */
 modulejs.define('Core', ['Process', 'Stream', 'SettingsCache',
-    'LauncherAgent', 'Application', 'Sidebar'],
+    'LauncherAgent', 'Application', 'Sidebar', 'HardwareButtons'],
 function (Process, Stream, SettingsCache, LauncherAgent,
-  Application, Sidebar) {
+  Application, Sidebar, HardwareButtons) {
 
   var Core = function() {
     this.configs = {
       listens: {
-        events: [ 'load' ]
+        // Handle platform events & Launcher events, so this list would
+        // be long. However, some platform events would be handled
+        // by other components, so we can avoid monstrous component.
+        events: [
+          'load',
+          'launcher.applaunch'
+        ]
       }
     };
     this.elements = {
@@ -28,14 +34,14 @@ function (Process, Stream, SettingsCache, LauncherAgent,
       sidebar: null
     };
     this.components = {
-      app: null,
-      sidebar: null
+      apps: [],
+      sidebar: null,
+      hardwardButtons: null
     };
     // Launcher launch other apps, including FTU if it's necessary.
     // In FTU mode, launcher is a transparent app and the only thing
     // it does is quickly transferring to FTU app.
     this.states = {
-      launcheragent: null,
       launcherurl: null
     };
     this.process = new Process();
@@ -52,7 +58,6 @@ function (Process, Stream, SettingsCache, LauncherAgent,
     this.process
       .start()
       .then(this.fetchSettings.bind(this))
-      .then(this.setupAgent.bind(this))
       .then(this.stream.ready.bind(this.stream))
       .catch(console.error.bind(console));
     return this.process;
@@ -66,19 +71,12 @@ function (Process, Stream, SettingsCache, LauncherAgent,
       });
   };
 
-  Core.prototype.setupAgent = function() {
-    this.states.launcheragent = new LauncherAgent();
-    return this.states.launcheragent.start();
-  };
-
   /**
    * We don't need to stop it. We destroy it.
    */
   Core.prototype.destroy = function() {
     this.process
       .destroy()
-      .then(this.states.launcheragent.stop
-          .bind(this.states.launcheragent))
       .then(this.stream.stop.bind(this.stream))
       .then(this.destroyComponents)
       .catch(console.error.bind(console));
@@ -96,22 +94,30 @@ function (Process, Stream, SettingsCache, LauncherAgent,
   };
 
   Core.prototype.startComponents = function() {
+    // First app is the launcher.
+    // And Launcher would fire some special events to Core,
+    // so we need a special agent for it.
     var appstates = {
-      manifesturl: this.states.launcherurl
+      manifesturl: this.states.launcherurl,
+      agent: new LauncherAgent()
     };
-    this.components.app = new Application();
+    this.components.apps = [ new Application() ];
     this.components.sidebar = new Sidebar();
     return Promise.all([
-      this.components.app.start(this.elements.app, appstates),
-      this.components.sidebar.start(this.elements.sidebar)
+      this.components.apps[0].start(this.elements.app, appstates),
+      this.components.sidebar.start(this.elements.sidebar),
+      this.components.hardwareButtons.start()
     ]);
   };
 
   Core.prototype.destroyComponents = function() {
-    return Promise.all([
-      this.components.app.destroy(),
-      this.components.sidebar.destroy()
-    ]);
+    var appDestroies = this.components.apps.map((app) => {
+      return app.destroy();
+    });
+    return Promise.all(appDestroies.concat([
+      this.components.sidebar.destroy(),
+      this.components.hardwareButtons.destroy()
+    ]));
   };
 
   Core.prototype.setupView = function() {

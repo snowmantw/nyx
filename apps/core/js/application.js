@@ -42,6 +42,7 @@ function(Process, Stream, ApplicationHide, ApplicationKill) {
   Application.prototype.start =
   function(view, states) {
     this.setView(view);
+    this.setStates(states);
     this.stream
       .start(this.process)
       .events(this.configs.listens.events)
@@ -67,7 +68,7 @@ function(Process, Stream, ApplicationHide, ApplicationKill) {
   };
 
   /**
-   * The most simple launching settings.
+   * The simplest launching settings.
    * Other special settings should come with special Application*,
    * which inherit or mix this one.
    *
@@ -139,17 +140,29 @@ function(Process, Stream, ApplicationHide, ApplicationKill) {
     });
   };
 
+  /**
+   * If we get some states from previous state, we can use them.
+   */
+  Application.prototype.setStates = function(states = {}) {
+    this.states = states;
+  };
+
   Application.prototype.transferToHideState = function() {
     this.states.next = new ApplicationHide();
-    return this.states.next.start().then(this.destroy.bind(this));
+    return this.states.next.start(this.elements.view, this.states)
+      .then(this.destroy.bind(this));
   };
 
   Application.prototype.transferToKillState = function() {
     this.states.next = new ApplicationKill();
-    return this.states.next.start().then(this.destroy.bind(this));
+    return this.states.next.start(this.elements.view, this.states)
+      .then(this.destroy.bind(this));
   };
 
   Application.prototype.handleEvent = function(evt) {
+    if (evt.details.manifesturl !== this.states.manifesturl) {
+      return;
+    }
     switch (evt.type) {
       case 'core.apphide':
         this.stop().then(this.transferToHideState.bind(this));
