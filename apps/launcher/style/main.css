@@ -1,0 +1,8 @@
+#app #backstage {
+  display: none;
+}
+
+#sidebar {
+  max-width: 33%;
+  overflow: hidden;
+}

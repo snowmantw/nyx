@@ -199,6 +199,13 @@ function setHomescreenURL(settings, config) {
     config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
 }
 
+// XXX: Before we can get rid of Gaia and it's build system,
+// we need this.
+function setLauncherURL(settings, config) {
+  settings['launcher.manifestURL'] = utils.gaiaManifestURL('launcher',
+    config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
+}
+
 function writeSettings(settings, config) {
   // Finally write the settings file
   let profileDir = utils.getFile(config.PROFILE_DIR);
@@ -303,6 +310,8 @@ function execute(config) {
     overrideSettings(settings, config);
   }).then(function() {
     setHomescreenURL(settings, config);
+  }).then(function() {
+    setLauncherURL(settings, config);
   }).then(function() {
     writeSettings(settings, config);
     return settings;

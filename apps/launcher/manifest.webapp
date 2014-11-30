@@ -1,0 +1,65 @@
+{
+  "name": "Launcher",
+  "description": "Nyx Launcher",
+  "launch_path": "/index.html",
+  "type": "certified",
+  "role": "homescreen",
+  "developer": {
+    "name": "The Nyx Team",
+    "url": "https://github.com/snowmantw/nyx"
+  },
+  "permissions": {
+    "themeable":{},
+    "mobileconnection":{},
+    "open-remote-window":{},
+    "storage": {},
+    "webapps-manage": {},
+    "systemXHR": {},
+    "settings":{ "access": "readwrite" }
+  },
+  "default_locale": "en-US",
+  "locales": {
+    "ar": {
+      "name": "الشاشة الرئيسية",
+      "description": "Nyx الشاشة الرئيسية"
+    },
+    "en-US": {
+      "name": "Launcher",
+      "description": "Nyx Launcher"
+    },
+    "fr": {
+      "name": "Écran d’accueil",
+      "description": "Écran d’accueil Nyx"
+    },
+    "zh-TW": {
+      "name": "主畫面",
+      "description": "Nyx 主畫面"
+    }
+  },
+  "icons": {
+    "84": "/style/icons/vertical_84.png",
+    "126": "/style/icons/vertical_126.png",
+    "142": "/style/icons/vertical_142.png",
+    "189": "/style/icons/vertical_189.png",
+    "284": "/style/icons/vertical_284.png"
+  },
+  "orientation": "default",
+  "activities": {},
+  "messages": [],
+  "datastores-access": {
+    "bookmarks_store": {
+      "readonly": false,
+      "description": "Display bookmarks"
+    },
+    "collections_store": {
+      "readonly": false,
+      "description": "Display collections"
+    }
+  },
+  "datastores-owned": {
+    "vertical_preferences_store": {
+      "access": "readwrite",
+      "description": "Stores preferences"
+    }
+  }
+}
