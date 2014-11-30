@@ -9,15 +9,16 @@
  * So when it receive 'hide' and 'kill' event, it would transfer
  * to one of these states.
  */
-modulejs.define('Application', ['Process', 'Stream',
-    'ApplicationHide', 'ApplicationKill'],
-function(Process, Stream, ApplicationHide, ApplicationKill) {
+modulejs.define('Application', ['Process', 'Stream'],
+function(Process, Stream) {
   var Application = function() {
     this.configs = {
-      events: [
-        'core.apphide',
-        'core.appkill'
-      ]
+      listens: {
+        events: [
+          'core.apphide',
+          'core.appkill'
+        ]
+     }
     };
     this.states = {
       manifesturl: null,
@@ -31,6 +32,8 @@ function(Process, Stream, ApplicationHide, ApplicationKill) {
       stage: null,
       backstage: null
     };
+    this.process = new Process();
+    this.stream = new Stream();
     this.handleEvent = this.handleEvent.bind(this);
   };
 
@@ -131,8 +134,8 @@ function(Process, Stream, ApplicationHide, ApplicationKill) {
 
   Application.prototype.setView = function(view) {
     this.elements.view = view;
-    this.elements.stage = view.getElementById('stage');
-    this.elements.backstage = view.getElementById('backstage');
+    this.elements.stage = document.getElementById('stage');
+    this.elements.backstage = document.getElementById('backstage');
     Object.keys(this.elements).forEach((name) => {
       if (!this.elements[name]) {
         throw new Error(`Can't find the element: ${name}`);
@@ -148,12 +151,18 @@ function(Process, Stream, ApplicationHide, ApplicationKill) {
   };
 
   Application.prototype.transferToHideState = function() {
+    // Get it on the fly to avoid circular dependencies.
+    var ApplicationHide = modulejs.require('ApplicationHide');
     this.states.next = new ApplicationHide();
     return this.states.next.start(this.elements.view, this.states)
       .then(this.destroy.bind(this));
   };
 
   Application.prototype.transferToKillState = function() {
+    // Get it on the fly to avoid circular dependencies.
+    // This is special case since for state transferring, it's actually
+    // a lazy requirement and may transfer to the state itself later.
+    var ApplicationKill = modulejs.require('ApplicationKill');
     this.states.next = new ApplicationKill();
     return this.states.next.start(this.elements.view, this.states)
       .then(this.destroy.bind(this));

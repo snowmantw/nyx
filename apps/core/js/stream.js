@@ -13,8 +13,10 @@
  */
 modulejs.define('Stream', function() {
   var Stream = function() {
+    this.inames = [];
+    this.enames = [];
     // Need to bind it since it's not handleEvent method.
-    this.handleInterrupts = this.handleInterrupts.bind(this);
+    this.handleInterrupt = this.handleInterrupt.bind(this);
   };
 
   /**
@@ -53,8 +55,8 @@ modulejs.define('Stream', function() {
    * handle the events.
    */
   Stream.prototype.ready = function() {
-    this.enames.forEach((ename) => {
-      window.addEventListener(ename, this.handleInterrupts);
+    this.inames.forEach((iname) => {
+      window.addEventListener(iname, this.handleInterrupts);
     });
     this.enames.forEach((ename) => {
       window.addEventListener(ename, this);

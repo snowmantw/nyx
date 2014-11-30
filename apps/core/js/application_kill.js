@@ -4,8 +4,8 @@
 /**
  * Would kill the app. This is the end state, and would listen nothing anymore.
  **/
-modulejs.define('ApplicationKill', ['Process', 'Application'],
-function(Process, Application) {
+modulejs.define('ApplicationKill', ['Process'],
+function(Process) {
   var ApplicationKill = function() {
     this.configs = {};
     this.states = {};
@@ -40,8 +40,8 @@ function(Process, Application) {
 
   ApplicationKill.prototype.setView = function(view) {
     this.elements.view = view;
-    this.elements.stage = view.getElementById('stage');
-    this.elements.backstage = view.getElementById('backstage');
+    this.elements.stage = document.getElementById('stage');
+    this.elements.backstage = document.getElementById('backstage');
     Object.keys(this.elements).forEach((name) => {
       if (!this.elements[name]) {
         throw new Error(`Can't find the element: ${name}`);

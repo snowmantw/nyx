@@ -22,16 +22,16 @@ modulejs.define('SettingsCache', function() {
     });
     var lock = navigator.mozSettings.createLock();
     var req = lock.get(entry);
-    req.onsuccess(() => {
+    req.onsuccess = () => {
       this.cache[entry] = req.result;
       // Once it getted, monitor it to update cache.
       navigator.mozSettings
         .addObserver(entry, this.handleSettings);
       resolve(req.result);
-    });
-    req.onerror(() => {
+    };
+    req.onerror = () => {
       reject(req.error);
-    });
+    };
     return promise;
   };
   SettingsCache.prototype.set = function(entry, value) {

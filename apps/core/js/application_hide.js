@@ -4,9 +4,8 @@
 /**
  * Would push the app iframe to backstage, which is hidden.
  **/
-modulejs.define('ApplicationHide', ['Process', 'Stream',
-    'ApplicationKill', 'Application'],
-function(Process, Stream, ApplicationKill, Application) {
+modulejs.define('ApplicationHide', ['Process', 'Stream'],
+function(Process, Stream) {
   var ApplicationHide = function() {
     this.configs = {
       listens: {
@@ -66,8 +65,8 @@ function(Process, Stream, ApplicationKill, Application) {
 
   ApplicationHide.prototype.setView = function(view) {
     this.elements.view = view;
-    this.elements.stage = view.getElementById('stage');
-    this.elements.backstage = view.getElementById('backstage');
+    this.elements.stage = document.getElementById('stage');
+    this.elements.backstage = document.getElementById('backstage');
     Object.keys(this.elements).forEach((name) => {
       if (!this.elements[name]) {
         throw new Error(`Can't find the element: ${name}`);
@@ -80,12 +79,14 @@ function(Process, Stream, ApplicationKill, Application) {
   };
 
   ApplicationHide.prototype.transferToKillState = function() {
+    var ApplicationKill = modulejs.require('ApplicationKill');
     this.states.next = new ApplicationKill();
     return this.states.next.start(this.elements.view, this.states)
       .then(this.destroy.bind(this));
   };
 
   ApplicationHide.prototype.transferToShowState = function() {
+    var Application = modulejs.require('Application');
     this.states.next = new Application();
     return this.states.next.start(this.elements.view, this.states)
       .then(this.destroy.bind(this));

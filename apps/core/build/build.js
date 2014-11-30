@@ -12,6 +12,7 @@ CoreAppBuilder.prototype.concatFiles = function() {
   var stagePath = options.STAGE_APP_DIR;
   var targetFile = utils.getFile(stagePath, 'js', 'main.js');
   var contents = [
+    'hardware_buttons.js',
     'process.js',
     'stream.js',
     'settings_cache.js',

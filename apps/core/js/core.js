@@ -23,7 +23,6 @@ function (Process, Stream, SettingsCache, LauncherAgent,
         // be long. However, some platform events would be handled
         // by other components, so we can avoid monstrous component.
         events: [
-          'load',
           'launcher.applaunch'
         ]
       }
@@ -51,6 +50,7 @@ function (Process, Stream, SettingsCache, LauncherAgent,
   };
 
   Core.prototype.start = function() {
+    this.setView();
     this.stream
       .start(this.process)
       .events(this.configs.listens.events)
@@ -59,6 +59,7 @@ function (Process, Stream, SettingsCache, LauncherAgent,
       .start()
       .then(this.fetchSettings.bind(this))
       .then(this.stream.ready.bind(this.stream))
+      .then(this.startComponents.bind(this))
       .catch(console.error.bind(console));
     return this.process;
   };
@@ -66,8 +67,8 @@ function (Process, Stream, SettingsCache, LauncherAgent,
   Core.prototype.fetchSettings = function() {
     // XXX: When we get rid of Gaia, rename all things.
     return this.settings.get('homescreen.manifestURL')
-      .then((url) => {
-        this.states.launcherurl = url;
+      .then((result) => {
+        this.states.launcherurl = result['homescreen.manifestURL'];
       });
   };
 
@@ -85,10 +86,7 @@ function (Process, Stream, SettingsCache, LauncherAgent,
 
   Core.prototype.handleEvent = function(evt) {
     switch (evt.type) {
-      case 'load':
-        // Since in bootstraping, the first app must be launched
-        // after the event.
-        this.startComponents();
+      case 'launcher.applaunch':
         break;
     }
   };
@@ -103,6 +101,7 @@ function (Process, Stream, SettingsCache, LauncherAgent,
     };
     this.components.apps = [ new Application() ];
     this.components.sidebar = new Sidebar();
+    this.components.hardwareButtons = new HardwareButtons();
     return Promise.all([
       this.components.apps[0].start(this.elements.app, appstates),
       this.components.sidebar.start(this.elements.sidebar),
@@ -120,10 +119,10 @@ function (Process, Stream, SettingsCache, LauncherAgent,
     ]));
   };
 
-  Core.prototype.setupView = function() {
+  Core.prototype.setView = function() {
     this.elements.view = document.body;
-    this.elements.app = document.app;
-    this.elements.sidebar = document.sidebar;
+    this.elements.app = document.getElementById('app');
+    this.elements.sidebar = document.getElementById('sidebar');
     Object.keys(this.elements).forEach((name) => {
       if (!this.elements[name]) {
         throw new Error(`Not a vaild element: ${name}`);
