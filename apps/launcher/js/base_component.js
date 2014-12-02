@@ -10,7 +10,9 @@ function(Process, Stream) {
         interrupts: []
       }
     };
-    this.states = {};
+    this.states = {
+      next: null
+    };
     this.elements = {};
     this.components = {};
     this.process = new Process();
@@ -56,9 +58,11 @@ function(Process, Stream) {
     Object.keys(this.elements).forEach((key) => {
       // Replace query to DOM.
       var query = this.elements[key];
-      this.elements[key] = this.view.querySelector(query);
-      if (null === this.elements[key]) {
-        throw new Error(`Can't find element ${key} with ${query}`);
+      if ('string' === typeof query) {
+        this.elements[key] = this.view.querySelector(query);
+        if (null === this.elements[key]) {
+          throw new Error(`Can't find element ${key} with ${query}`);
+        }
       }
     });
   };
@@ -81,11 +85,28 @@ function(Process, Stream) {
 
   BaseComponent.prototype.waitComponents = function(method, args) {
     var startPromises =
-    Object.keys(this.components).map((name) => {
+    Object.keys(this.components).reduce((steps, name) => {
       var instance = this.components[name];
-      return instance[method].apply(instance, args);
+      // If the entry of the component actually contains multiple subcomponents.
+      // We need to apply the method to each one and concat all the result
+      // promises with our main array of applies.
+      if (Array.isArray(instance)) {
+        var applies = instance.map((subcomponent) => {
+          return subcomponent.apply(subcomponent, args);
+        });
+        return steps.concat(applies);
+      } else {
+        return steps.concat([instance[method].apply(instance, args)]);
+      }
     });
     return Promise.all(startPromises);
+  };
+
+  BaseComponent.prototype.transferTo = function(moduleName) {
+    var StateClass = modulejs.require(moduleName);
+    this.states.next = new StateClass();
+    return this.states.next.start(this.elements.view, this.states)
+      .then(this.destroy.bind(this));
   };
 
   return BaseComponent;
